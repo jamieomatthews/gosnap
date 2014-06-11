@@ -16,7 +16,7 @@ The implementation is partially based on [pysnap](https://github.com/martinp/pys
 * [ ] Store users (and snaps?) in a database
 
 
- ![GoSnap](github.com/jamieomatthews/gosnap/public/img/gosnap.png)
+ ![GoSnap](/public/img/gosnap.png)
 
 ### Installation
 
