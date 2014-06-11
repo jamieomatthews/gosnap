@@ -15,7 +15,9 @@ The implementation is partially based on [pysnap](https://github.com/martinp/pys
 * [ ] Send snaps
 * [ ] Store users (and snaps?) in a database
 
- 
+
+ ![GoSnap](github.com/jamieomatthews/gosnap/public/img/gosnap.png)
+
 ### Installation
 
 ```bash
