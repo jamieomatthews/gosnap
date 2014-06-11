@@ -1,0 +1,12 @@
+<div class="panel panel-default">
+  <div class="panel-heading">My Stories</div>
+  <ul class="snap-list list-group">
+    {{range .Friends}}
+    <li class="list-group-item">
+      <a data-id="{{.Username}}" class="story-link" href="#">
+      {{.Username}}
+      </a>
+    </li>
+    {{end}}
+  </ul>
+</div>

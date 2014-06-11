@@ -1,0 +1,80 @@
+
+    <script>
+      $(document).ready(function(){
+        $(".snap-link").on("click", function(){
+          if($(this).attr("data-id") != -1){
+            var url = "/api/snap";
+            $.ajax({
+               type: "POST",
+               url: url,
+               data: {"snap_id" : $(this).attr("data-id")}, 
+               success: function(data, textStatus, request)
+               {
+                  var contentType = request.getResponseHeader('Content-Type')
+                  console.log(contentType)
+                  if(contentType == "video/mp4"){
+                    $("#media-col .panel-body").empty().append('<div class="media-item video"><video controls><source type="video/webm" src="data:video/mp4;base64,'+ data + '"/></video></div>')
+                  }
+                  else {
+                    $("#media-col .panel-body").empty().append('<div class="media-item image"><img src="data:image/png;base64,'+ data + '"/></div>')
+                  }
+                   
+               }
+            });
+          }
+          
+        });
+
+        $(".main-content").on("click", ".story-link", function(){
+          console.log("loading story");
+          var url = "/api/story";
+            $.ajax({
+               type: "POST",
+               url: url,
+               data: {"name" : $(this).attr("data-id")}, 
+               success: function(data, textStatus, request)
+               {
+                  $("#media-col .panel-body").empty();
+                  for (var i = 0; i < data.length; i++) {
+                    var snap = data[i];
+                    console.log(snap);
+                    if(snap.type == "image"){
+                      $("#media-col .panel-body").append('<div class="media-item image"><img src="data:image/png;base64,'+ snap.data + '"/></div>');
+                    }
+                    else {
+                      $("#media-col .panel-body").append('<div class="media-item video"><video controls><source type="video/webm" src="data:video/mp4;base64,'+ snap.data + '"/></video></div>');
+                    }
+                  }
+               }
+            });
+        });
+
+      });
+    </script>
+
+
+<div class="col-md-3">
+  <div class="panel panel-default">
+    <div class="panel-heading">Snaps</div>
+    <ul class="snap-list list-group">
+      {{range .Snaps}}
+      <li class="list-group-item"><a data-id="{{ if .IsUnopened }}{{.SnapId}}{{else}}-1{{end}}" class="snap-link" href="#">
+        <i class="fa {{ if .IsIncoming }}{{ if .IsUnopened }}fa-square{{else}}fa-square-o{{end}}{{else}}{{ if .IsUnopened }}fa-paper-plane-o{{else}}fa-share{{end}}{{end}} {{if .IsImage}}image{{else}}video{{end}}
+        "></i>{{ if .IsIncoming }} {{.ScreenName}} {{else}} {{.RecipientName}} {{end}} </a></li>
+      {{end}}
+    </ul>
+  </div>
+</div>
+
+<div class="col-md-6" id="media-col">
+  <div class="panel panel-default">
+    <div class="panel-heading">Select a snap on the left</div>
+    <div class="panel-body">
+    </div>
+  </div>
+</div>
+
+<div class="col-md-3" id="story-col">
+</div>
+
+

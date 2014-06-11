@@ -1,0 +1,147 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Check out your snaps, right in the browser!">
+    <meta name="author" content="">
+    <title>Go Snap - Login</title>
+
+
+
+    <!-- Bootstrap core CSS -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/signin.css" rel="stylesheet">
+
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+
+    <script src="/js/jquery.min.js"></script>
+
+    <link rel="apple-touch-icon" sizes="57x57" href="/favicons/apple-touch-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/favicons/apple-touch-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/favicons/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/favicons/apple-touch-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/favicons/apple-touch-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/favicons/apple-touch-icon-76x76.png">
+    <link rel="icon" type="image/png" href="/favicons/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/png" href="/favicons/favicon-16x16.png" sizes="16x16">
+    <link rel="icon" type="image/png" href="/favicons/favicon-32x32.png" sizes="32x32">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <script>
+      $(document).ready(function(){
+        console.log("done");
+
+        var loadSnaps = function() {
+            var url = "/api/reload";
+            $.ajax({
+               type: "GET",
+               url: url,
+               success: function(data)
+               {
+                   //console.log(data); 
+                   $(".main-content").html(data)
+               }
+            });
+        };
+
+        var loadStories = function() {
+            var url = "/api/stories";
+            $.ajax({
+               type: "GET",
+               url: url,
+               success: function(data)
+               {
+                   $("#story-col").empty().append(data)
+               }
+            });
+        };
+
+        loadSnaps();
+
+
+        //bindings
+        $("#login-form").submit(function() {
+
+            var url = "/api/login";
+            $.ajax({
+               type: "POST",
+               url: url,
+               data: $("#login-form").serialize(), 
+               success: function(data)
+               {
+                   //console.log(data); 
+                   $(".main-content").html(data)
+                   loadStories();
+               }
+            });
+            return false; // avoid to execute the actual submit of the form.
+        });
+        $("#login-btn").on("click", function(e){
+          e.preventDefault()
+          $("#login-form").submit();
+        });
+
+        $(".logout-link").on("click", function(){
+          var url = "/api/logout";
+            $.ajax({
+               type: "Get",
+               url: url,
+               success: function(data)
+               {
+                   //for now, just reload the page
+                   //should probably introduce some client side templating here
+                   window.location.reload()
+               }
+            });
+        });
+      });
+    </script>
+  </head>
+
+  <body>
+
+  <nav class="navbar navbar-default" role="navigation">
+    <div class="container">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <img class="brand-icon" src="/img/snapchat-flat.png"/>
+          <a class="navbar-brand" href="#">Go Snap</a>
+        </div>
+        <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav navbar-right">
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Options <b class="caret"></b></a>
+                <ul class="dropdown-menu">
+                  <li> <a class="logout-link" href="#"><i class="fa fa-sign-out"></i> Logout</a></li>
+                  <li> <a href="http://github.com/jamieomatthews/gosnap"><i class="fa fa-github-alt"></i> Github</a></li>
+                </ul>
+              </li>
+            </ul>
+        </div><!--/.navbar-collapse -->
+      </div>
+    </div>
+  </nav>
+
+  <div class="container main-content">
+    <form class="form-signin" id="login-form" role="form" action="/login" method="post">
+      <h2 class="form-signin-heading">Please sign in</h2>
+      <input type="text" class="form-control" name="username" placeholder="Email address" required autofocus>
+      <input type="password" class="form-control" name="password" placeholder="Password" required>
+      <label class="checkbox">
+        <input type="checkbox" value="remember-me"> Remember me
+      </label>
+      <button class="btn btn-lg btn-primary btn-block" id="login-btn" type="submit">Sign in</button>
+    </form>
+
+  </div> <!-- /container -->
+
+  <script src="/js/bootstrap.min.js"></script>
+  </body>
+</html>
