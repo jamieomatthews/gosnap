@@ -10,15 +10,11 @@
                data: {"snap_id" : $(this).attr("data-id")}, 
                success: function(data, textStatus, request)
                {
-                  var contentType = request.getResponseHeader('Content-Type')
-                  console.log(contentType)
-                  if(contentType == "video/mp4"){
-                    $("#media-col .panel-body").empty().append('<div class="media-item video"><video controls><source type="video/webm" src="data:video/mp4;base64,'+ data + '"/></video></div>')
+                  for (var i = 0; i < data.length; i++) {
+                    var snap = data[i];
+                    console.log(snap);
+                    displayData(snap.data, snap.type);
                   }
-                  else {
-                    $("#media-col .panel-body").empty().append('<div class="media-item image"><img src="data:image/png;base64,'+ data + '"/></div>')
-                  }
-                   
                }
             });
           }
@@ -38,17 +34,22 @@
                   for (var i = 0; i < data.length; i++) {
                     var snap = data[i];
                     console.log(snap);
-                    if(snap.type == "image"){
-                      $("#media-col .panel-body").append('<div class="media-item image"><img src="data:image/png;base64,'+ snap.data + '"/></div>');
-                    }
-                    else {
-                      $("#media-col .panel-body").append('<div class="media-item video"><video controls><source type="video/webm" src="data:video/mp4;base64,'+ snap.data + '"/></video></div>');
-                    }
+                    displayData(snap.data, snap.type);
                   }
                }
             });
         });
-
+        var displayData = function(data, type){
+            if(type == "image"){
+               $("#media-col .panel-body").append('<div class="media-item image"><img src="data:image/png;base64,'+ data + '"/></div>');
+            }
+            else if(type == "video"){
+              $("#media-col .panel-body").append('<div class="media-item video"><video controls><source type="video/webm" src="data:video/mp4;base64,'+ data + '"/></video></div>');
+            }
+            else {
+              $("#media-col .panel-body").append('<div class="media-item video"><video controls><source type="video/webm" src="data:application/octet-stream;base64,'+ data + '"/></video></div>');
+            }
+        };
       });
     </script>
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/base64"
+	"fmt"
 	"net/http"
 
 	"github.com/go-martini/martini"
@@ -74,17 +75,35 @@ func main() {
 	})
 
 	//given the user is logged in, return the snap by ID
-	m.Post("/api/snap", authorize, func(res http.ResponseWriter, req *http.Request, r render.Render, session sessions.Session, currentUser client.User) string {
+	m.Post("/api/snap", authorize, func(res http.ResponseWriter, req *http.Request, r render.Render, session sessions.Session, currentUser client.User) {
 		id := req.FormValue("snap_id")
 		data := client.GetBlob(id, currentUser)
-		if client.IsImage(data) {
-			res.Header().Set("Content-Type", "image/gif")
-		} else if client.IsVideo(data) {
-			res.Header().Set("Content-Type", "video/mp4")
-		}
 
-		str := base64.StdEncoding.EncodeToString(data)
-		return str
+		//we need an struct to return multiple files to the browser with
+		var snapData []map[string]string = make([]map[string]string, 0)
+		var mediaType = ""
+		if client.IsImage(data) {
+			mediaType = "image"
+		} else if client.IsVideo(data) {
+			mediaType = "video"
+		} else {
+			//in some semi-rare cases, data is returned zipped
+			zippedData := client.Unzip(data)
+			for _, zipDat := range zippedData {
+				fmt.Println("Data=", zipDat[0:2])
+				if client.IsOverlay(zipDat) {
+					fmt.Println("Is Overlay")
+					snapData = append(snapData, map[string]string{"type": "image", "data": base64.StdEncoding.EncodeToString(zipDat)})
+				} else {
+					snapData = append(snapData, map[string]string{"type": "video", "data": base64.StdEncoding.EncodeToString(zipDat)})
+				}
+			}
+			r.JSON(200, snapData)
+			return
+		}
+		snapData = append(snapData, map[string]string{"type": mediaType, "data": base64.StdEncoding.EncodeToString(data)})
+		r.JSON(200, snapData)
+		return
 	})
 
 	m.Post("/api/story", authorize, func(res http.ResponseWriter, req *http.Request, currentUser client.User, r render.Render) {
@@ -102,22 +121,33 @@ func main() {
 		}
 
 		//we need an struct to return multiple files to the browser with
-		var storyData []map[string]string = make([]map[string]string, len(stories))
+		var storyData []map[string]string = make([]map[string]string, 0)
 
-		for i, story := range stories {
+		for _, story := range stories {
 			data := client.GetStory(
 				story.Stories.MediaId,
 				currentUser.AuthToken,
 				string(client.DecodeBase64(story.Stories.MediaKey)),
 				string(client.DecodeBase64(story.Stories.MediaIv)))
 
-			var mediaType string
 			if client.IsImage(data) {
-				mediaType = "image"
+				storyData = append(storyData, map[string]string{"type": "image", "data": base64.StdEncoding.EncodeToString(data)})
 			} else if client.IsVideo(data) {
-				mediaType = "video"
+				storyData = append(storyData, map[string]string{"type": "video", "data": base64.StdEncoding.EncodeToString(data)})
+			} else {
+				//in some semi-rare cases, data is returned zipped
+				zippedData := client.Unzip(data)
+				for _, zipDat := range zippedData {
+					fmt.Println("Data=", zipDat[0:2])
+					if client.IsOverlay(zipDat) {
+						fmt.Println("Is Overlay")
+						storyData = append(storyData, map[string]string{"type": "image", "data": base64.StdEncoding.EncodeToString(zipDat)})
+					} else {
+						storyData = append(storyData, map[string]string{"type": "video", "data": base64.StdEncoding.EncodeToString(zipDat)})
+					}
+				}
 			}
-			storyData[i] = map[string]string{"type": mediaType, "data": base64.StdEncoding.EncodeToString(data)}
+
 		}
 
 		r.JSON(200, storyData)

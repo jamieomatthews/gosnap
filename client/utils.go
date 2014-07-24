@@ -1,14 +1,22 @@
 package client
 
 import (
+	"archive/zip"
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
+	"os"
+	"path"
+	"runtime"
 	"strconv"
 	"time"
 
@@ -39,6 +47,8 @@ const (
 	DELIVERED  = 1
 	VIEWED     = 2
 	SCREENSHOT = 3
+
+	STATIC_ZIP_LOC = "temp/temp"
 )
 
 func CreateRequestToken(token, timestamp string) string {
@@ -159,6 +169,7 @@ func CreateMediaId(username string) string {
 
 func IsVideo(data []byte) bool {
 	//looking for byte values '\x00\x00'
+	//fmt.Printf("Is Video? \n%x\n%x\n", data, data[0:2])
 	return len(data) > 1 && bytes.Equal(data[0:2], []byte{0, 0})
 }
 
@@ -168,7 +179,77 @@ func IsImage(data []byte) bool {
 	return len(data) > 1 && bytes.Equal(data[0:2], []byte{255, 216})
 }
 
+func IsOverlay(data []byte) bool {
+	fmt.Println("is overlay? ", data[0:10])
+	return len(data) > 1 && bytes.Equal(data[0:2], []byte{137, 80})
+}
+
 //not yet implemented
 func IsZip(data []byte) bool {
+
 	return false
+}
+
+//some snap data is zipped up, which makes it hard to get at
+//the solution is to save the data to disk, and then read it in with
+//a zip reader, and then return the byte values for each thing in the zip
+//usually there is an overlay (image) and contents(image or video)
+//Note: zipped data is cleaned up after returning
+func Unzip(data []byte) [][]byte {
+
+	//first, annoyingly, we must save the files to disk
+	//first check to make sure the directory exists
+	_, pathname, _, _ := runtime.Caller(1)
+	path := path.Join(path.Dir(pathname), "/temp/")
+
+	var filename = "temp.zip"
+	fmt.Printf("Path = %s\n", path)
+	if exists, _ := pathExists(path); !exists {
+		fmt.Println("Path Does Not Exist")
+		e := os.MkdirAll(path, 0666)
+		PanicIfErr(e)
+	}
+
+	writeError := ioutil.WriteFile(path+filename, data, 0777)
+	PanicIfErr(writeError)
+
+	r, err := zip.OpenReader(path + filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer r.Close()
+
+	var zipContents = make([][]byte, 2)
+
+	// Iterate through the files in the archive,
+	// printing some of their contents.
+	for i, f := range r.File {
+		fmt.Printf("Contents of %s:\n", f.Name)
+		rc, err := f.Open()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		buf := bytes.NewBuffer(nil)
+		io.Copy(buf, rc)
+
+		zipContents[i] = buf.Bytes()
+		rc.Close()
+	}
+
+	defer os.Remove(path + filename)
+
+	return zipContents
+}
+
+// exists returns whether the given file or directory exists or not
+func pathExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
 }
