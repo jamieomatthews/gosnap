@@ -10,6 +10,7 @@
                data: {"snap_id" : $(this).attr("data-id")}, 
                success: function(data, textStatus, request)
                {
+                $("#media-col .panel-body").empty();
                   for (var i = 0; i < data.length; i++) {
                     var snap = data[i];
                     console.log(snap);

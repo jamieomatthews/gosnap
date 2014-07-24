@@ -47,8 +47,6 @@ const (
 	DELIVERED  = 1
 	VIEWED     = 2
 	SCREENSHOT = 3
-
-	STATIC_ZIP_LOC = "temp/temp"
 )
 
 func CreateRequestToken(token, timestamp string) string {
@@ -221,8 +219,7 @@ func Unzip(data []byte) [][]byte {
 
 	var zipContents = make([][]byte, 2)
 
-	// Iterate through the files in the archive,
-	// printing some of their contents.
+	// Iterate through the files in the archive
 	for i, f := range r.File {
 		fmt.Printf("Contents of %s:\n", f.Name)
 		rc, err := f.Open()
