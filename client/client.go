@@ -54,6 +54,27 @@ func Login(username, password string) LoginResponse {
 	return login
 }
 
+// similar to a login, but does not authenticate
+// simply retreives the snap response
+func GetUpdates(username, auth_token string) LoginResponse {
+	params := url.Values{}
+	params.Add("username", username)
+
+	res, err := MakeRequest("/bq/updates", auth_token, params)
+	PanicIfErr(err)
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	//fmt.Printf("JSON BODY:\n%s\n", body)
+	PanicIfErr(err)
+
+	var login LoginResponse
+	err = json.Unmarshal(body, &login)
+
+	PanicIfErr(err)
+
+	return login
+}
+
 func Logout(username, auth_token string) bool {
 	params := url.Values{}
 	params.Add("username", username)

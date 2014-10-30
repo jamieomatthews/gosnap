@@ -42,11 +42,17 @@ func main() {
 
 	//log the user in, and store them in memory
 	m.Post("/api/login", binding.Bind(client.User{}), func(user client.User, r render.Render, session sessions.Session) {
-		var loginRequest = client.Login(user.Username, user.Password)
+		var loginRequest client.LoginResponse
+		// if the user doesnt initially pass in his auth token, we need to re-authenticate
+		if len(user.AuthToken) <= 0 {
+			loginRequest = client.Login(user.Username, user.Password)
+			user.AuthToken = loginRequest.AuthToken
+		} else {
+			loginRequest = client.GetUpdates(user.Username, user.AuthToken)
+		}
 
 		//store the user in memory
 		session.Set("user_id", user.Username)
-		user.AuthToken = loginRequest.AuthToken
 		users[user.Username] = user
 
 		r.HTML(200, "snaps", loginRequest)
@@ -152,6 +158,7 @@ func main() {
 
 		r.JSON(200, storyData)
 	})
+
 	m.Run()
 }
 

@@ -1,9 +1,9 @@
 package client
 
 type User struct {
-	Username      string `form:"username" binding:"required"`
-	Password      string `form:"password" binding:"required"`
-	AuthToken     string
+	Username      string        `form:"username" binding:"required"`
+	Password      string        `form:"password" binding:"required"`
+	AuthToken     string        `form:"auth_token"`
 	FriendStories StoryResponse //store the last gotten story response
 }
 
