@@ -96,9 +96,7 @@ func main() {
 			//in some semi-rare cases, data is returned zipped
 			zippedData := client.Unzip(data)
 			for _, zipDat := range zippedData {
-				fmt.Println("Data=", zipDat[0:2])
 				if client.IsOverlay(zipDat) {
-					fmt.Println("Is Overlay")
 					snapData = append(snapData, map[string]string{"type": "image", "data": base64.StdEncoding.EncodeToString(zipDat)})
 				} else {
 					snapData = append(snapData, map[string]string{"type": "video", "data": base64.StdEncoding.EncodeToString(zipDat)})
