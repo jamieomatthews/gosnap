@@ -34,7 +34,7 @@ func main() {
 
 	//attempt to reload your snaps by checking the session variable
 	m.Get("/api/reload", authorize, func(currentUser client.User, r render.Render) {
-		var loginRequest = client.Login(currentUser.Username, currentUser.Password)
+		var loginRequest = client.GetUpdates(currentUser.Username, currentUser.AuthToken)
 		currentUser.AuthToken = loginRequest.AuthToken
 		users[currentUser.Username] = currentUser
 		r.HTML(200, "snaps", loginRequest)
@@ -43,7 +43,7 @@ func main() {
 	//log the user in, and store them in memory
 	m.Post("/api/login", binding.Bind(client.User{}), func(user client.User, r render.Render, session sessions.Session) {
 		var loginRequest client.LoginResponse
-		// if the user doesnt initially pass in his auth token, we need to re-authenticate
+		// if the user doesn't initially pass in his auth token, we need to re-authenticate
 		if len(user.AuthToken) <= 0 {
 			loginRequest = client.Login(user.Username, user.Password)
 			user.AuthToken = loginRequest.AuthToken
