@@ -12,6 +12,7 @@ The implementation is partially based on [pysnap](https://github.com/martinp/pys
 * [x] Download the pictures or snaps, from the browser
 * [x] Store the user in the session for easy reterival
 * [x] List & Decrypt Story images and videos
+* [x] Set users auth-token manually
 * [ ] Send snaps
 * [ ] Store users (and snaps?) in a database
 
@@ -32,6 +33,10 @@ The Gosnap client package has zero external dependencies, and can function as is
 ### Saving Snaps
 
 Currently, the only client is a web based client.  It would be trivial to write a client that simply saved the snaps to disk, but for now, if you want to save a snap, you can simply right click on the image or video, and save.
+
+### Setting Your Auth Token
+
+The web UI currently supports setting the users auth-token.  When you login without an auth-token, gosnap will re-login, which will unfortunetly log you out of any other devices you are using.  What you can do is use a proxy, like Charles App or Wireshark to retreive your auth-token from the login request while using the app, and paste it in.  This app will then continue to use that auth token and you can use snapchat on both your phone and computer.
 
 ### Contributing
 
