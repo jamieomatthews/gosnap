@@ -33,22 +33,28 @@ func main() {
 	//////////////////////////
 
 	//attempt to reload your snaps by checking the session variable
-	m.Get("/api/reload", authorize, func(currentUser client.User, r render.Render) {
-		var loginRequest = client.GetUpdates(currentUser.Username, currentUser.AuthToken)
+	m.Get("/api/reload", authorize, func(currentUser client.User, r render.Render, w http.ResponseWriter) {
+		loginRequest, err := client.GetUpdates(currentUser.Username, currentUser.AuthToken)
+		if err != nil {
+			LoginUser(&currentUser, w)
+		}
 		currentUser.AuthToken = loginRequest.AuthToken
 		users[currentUser.Username] = currentUser
 		r.HTML(200, "snaps", loginRequest)
 	})
 
 	//log the user in, and store them in memory
-	m.Post("/api/login", binding.Bind(client.User{}), func(user client.User, r render.Render, session sessions.Session) {
+	m.Post("/api/login", binding.Bind(client.User{}), func(user client.User, r render.Render, session sessions.Session, w http.ResponseWriter) {
 		var loginRequest client.LoginResponse
+		var err error
 		// if the user doesn't initially pass in his auth token, we need to re-authenticate
 		if len(user.AuthToken) <= 0 {
-			loginRequest = client.Login(user.Username, user.Password)
-			user.AuthToken = loginRequest.AuthToken
+			LoginUser(&user, w)
 		} else {
-			loginRequest = client.GetUpdates(user.Username, user.AuthToken)
+			loginRequest, err = client.GetUpdates(user.Username, user.AuthToken)
+			if err != nil {
+				LoginUser(&user, w)
+			}
 		}
 
 		//store the user in memory
@@ -158,6 +164,17 @@ func main() {
 	})
 
 	m.Run()
+}
+
+// will log the user in if it can, or else it
+// will return 401 to the browser
+func LoginUser(user *client.User, w http.ResponseWriter) {
+	loginRequest, err := client.Login(user.Username, user.Password)
+	if err != nil {
+		w.WriteHeader(401)
+		return
+	}
+	user.AuthToken = loginRequest.AuthToken
 }
 
 //The authorize middleware will search the session for a user_id

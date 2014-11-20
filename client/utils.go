@@ -86,7 +86,7 @@ func CreateGetRequest(endpoint, auth_token string, params url.Values) (*http.Req
 
 	//create the request
 	req, err := http.NewRequest("GET", s, nil)
-	req.Header.Add("User-Agent", "Snapchat/6.1.2 (iPhone6,2; iOS 7.0.4; gzip)")
+	req.Header.Add("User-Agent", "Snapchat/8.0.0.21 (iPhone6,1; iOS 8.1; gzip)")
 
 	return req, err
 }

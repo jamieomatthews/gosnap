@@ -2,6 +2,7 @@ package client
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -33,14 +34,16 @@ func MakeGetRequest(endpoint string, auth_token string, params url.Values) (*htt
 	return resp, err
 }
 
-func Login(username, password string) LoginResponse {
+func Login(username, password string) (LoginResponse, error) {
 	params := url.Values{}
 	params.Add("username", username)
 	params.Add("password", password)
 
 	res, err := MakeRequest("/bq/login", STATIC_TOKEN, params)
+	if res.StatusCode != 200 {
+		return LoginResponse{}, errors.New("Login Unsuccessful")
+	}
 
-	PanicIfErr(err)
 	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
 	//fmt.Printf("JSON BODY:\n%s\n", body)
@@ -51,16 +54,20 @@ func Login(username, password string) LoginResponse {
 
 	PanicIfErr(err)
 
-	return login
+	return login, nil
 }
 
 // similar to a login, but does not authenticate
 // simply retreives the snap response
-func GetUpdates(username, auth_token string) LoginResponse {
+func GetUpdates(username, auth_token string) (LoginResponse, error) {
 	params := url.Values{}
 	params.Add("username", username)
 
 	res, err := MakeRequest("/bq/updates", auth_token, params)
+	if res.StatusCode != 200 {
+		return LoginResponse{}, errors.New("Update Failed")
+	}
+
 	PanicIfErr(err)
 	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
@@ -72,7 +79,7 @@ func GetUpdates(username, auth_token string) LoginResponse {
 
 	PanicIfErr(err)
 
-	return login
+	return login, nil
 }
 
 func Logout(username, auth_token string) bool {
